@@ -71,9 +71,9 @@ def get_playlists(request):
     user_id = request.GET['user_id']
     custom_user = CustomUser.objects.get(id=user_id)
     token = custom_user.access_token
-    username = custom_user.username
+    username = custom_user.spotify_id
     sp = spotipy.Spotify(auth=token)
     playlists = sp.user_playlists(username)
-    playlist_list = [playlist for playlist in playlists]
+    playlist_list = [playlist for playlist in playlists['items']]
     print(playlist_list)
     return JsonResponse({'status': 200, 'playlists': playlist_list})
