@@ -14,7 +14,6 @@ CLIENT_ID = "baa5f3746bf74710bf3f6b18926993db"
 SECRET_ID = "5617616ca51644b1b81eaf55efb56530"
 REDIRECT_URI = "http://127.0.0.1:8000/setup-success"
 
-
 @csrf_exempt
 def register_user(request):
     username = request.POST['username']
@@ -65,4 +64,16 @@ def add_code(request):
 
 
 def setup_success(request):
+    print("setup successful!")
     return HttpResponseRedirect('/api/add-code')
+
+def get_playlists(request):
+    user_id = request.GET['user_id']
+    custom_user = CustomUser.objects.get(id=user_id)
+    token = custom_user.access_token
+    username = custom_user.spotify_id
+    sp = spotipy.Spotify(auth=token)
+    playlists = sp.user_playlists(username)
+    playlist_list = [playlist for playlist in playlists['items']]
+    print(playlist_list)
+    return JsonResponse({'status': 200, 'playlists': playlist_list})
