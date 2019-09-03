@@ -94,12 +94,12 @@ def choose_songs_to_rate(request):
     token = custom_user.access_token
     username = custom_user.spotify_id
     sp = spotipy.Spotify(auth=token)
-    playlists = sp.user_playlists(username)
-    playlist_list = [playlist for playlist in playlists['items']]
-    playlist_ids = [id for id in playlist_list['id']]
+    user_playlists = sp.user_playlists(username)
+    playlist_ids = request.GET['playlist_ids']
+    playlist_list = [playlist for playlist in user_playlists['items']]
+    selected_playlists = playlist_list[playlist_list['id'] & playlist_ids]
     playlist_name = request.GET['playlist-name']
     number_songs = request.GET['number-songs']
-    output_playlists = sp.user_playlist_create(user_id, playlist_name)
-    return JsonResponse({'status': 200, 'playlists': playlist_list})
+    return JsonResponse({'status': 200, 'playlists': selected_playlists})
 
 
