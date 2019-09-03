@@ -101,5 +101,3 @@ def choose_songs_to_rate(request):
     playlist_name = request.GET['playlist-name']
     number_songs = request.GET['number-songs']
     return JsonResponse({'status': 200, 'playlists': selected_playlists})
-
-
