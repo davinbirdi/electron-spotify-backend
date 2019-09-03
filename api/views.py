@@ -75,5 +75,31 @@ def get_playlists(request):
     sp = spotipy.Spotify(auth=token)
     playlists = sp.user_playlists(username)
     playlist_list = [playlist for playlist in playlists['items']]
-    print(playlist_list)
     return JsonResponse({'status': 200, 'playlists': playlist_list})
+
+def get_songs_by_playlist(request):
+    user_id = request.GET['user_id']
+    playlist_id = request.GET['playlist_id']
+    custom_user = CustomUser.objects.get(id=user_id)
+    token = custom_user.access_token
+    username = custom_user.spotify_id
+    sp = spotipy.Spotify(auth=token)
+    playlist_tracks_list = sp.user_playlist_tracks(user_id, playlist_id)
+    playlist_tracks = [track for track in playlist_tracks_list['items']]
+    return JsonResponse({'status': 200, 'playlist_tracks': playlist_tracks})
+
+def choose_songs_to_rate(request):
+    user_id = request.GET['user_id']
+    custom_user = CustomUser.objects.get(id=user_id)
+    token = custom_user.access_token
+    username = custom_user.spotify_id
+    sp = spotipy.Spotify(auth=token)
+    playlists = sp.user_playlists(username)
+    playlist_list = [playlist for playlist in playlists['items']]
+    playlist_ids = [id for id in playlist_list['id']]
+    playlist_name = request.GET['playlist-name']
+    number_songs = request.GET['number-songs']
+    output_playlists = sp.user_playlist_create(user_id, playlist_name)
+    return JsonResponse({'status': 200, 'playlists': playlist_list})
+
+
