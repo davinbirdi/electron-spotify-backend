@@ -1,5 +1,6 @@
 from django.shortcuts import render
 import requests
+import random
 import spotipy
 import spotipy.util as util
 from django.contrib.auth.decorators import login_required
@@ -97,7 +98,9 @@ def choose_songs_to_rate(request):
     user_playlists = sp.user_playlists(username)
     playlist_ids = request.GET['playlist_ids']
     playlist_list = [playlist for playlist in user_playlists['items']]
+    # playlist_name = request.GET['playlist-name']
+    number_songs = request.GET['number_songs']
     selected_playlists = playlist_list[playlist_list['id'] & playlist_ids]
-    playlist_name = request.GET['playlist-name']
-    number_songs = request.GET['number-songs']
-    return JsonResponse({'status': 200, 'playlists': selected_playlists})
+    playlist_tracks_list = [sp.user_playlist_tracks(user_id, playlist_id) for playlist_id in selected_playlists]
+    rand_songs_by_playlist = [random.sample(songs, number_songs) for songs in playlist_tracks_list]
+    return JsonResponse({'status': 200, 'playlists': selected_playlists, 'playlist_songs': rand_songs_by_playlist})
