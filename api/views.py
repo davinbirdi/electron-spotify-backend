@@ -100,7 +100,7 @@ def choose_songs_to_rate(request):
     playlist_list = [playlist for playlist in user_playlists['items']]
     # playlist_name = request.GET['playlist-name']
     number_songs = request.GET['number_songs']
-    selected_playlists = playlist_list[playlist_list['id'] & playlist_ids]
+    selected_playlists = playlist_list[playlist_ids]
     playlist_tracks_list = [sp.user_playlist_tracks(user_id, playlist_id) for playlist_id in selected_playlists]
     rand_songs_by_playlist = [random.sample(songs, number_songs) for songs in playlist_tracks_list]
     return JsonResponse({'status': 200, 'playlists': selected_playlists, 'playlist_songs': rand_songs_by_playlist})
