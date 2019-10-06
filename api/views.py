@@ -10,6 +10,7 @@ from .models import CustomUser
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.http import HttpResponseRedirect
+from ast import literal_eval
 
 CLIENT_ID = "baa5f3746bf74710bf3f6b18926993db"
 SECRET_ID = "5617616ca51644b1b81eaf55efb56530"
@@ -90,17 +91,26 @@ def get_songs_by_playlist(request):
     return JsonResponse({'status': 200, 'playlist_tracks': playlist_tracks})
 
 def choose_songs_to_rate(request):
-    user_id = request.GET['user_id']
+    user_id = request.GET.get('user_id', '')
     custom_user = CustomUser.objects.get(id=user_id)
     token = custom_user.access_token
     username = custom_user.spotify_id
     sp = spotipy.Spotify(auth=token)
     user_playlists = sp.user_playlists(username)
-    playlist_ids = request.GET['playlist_ids']
+    playlist_ids = request.GET.get('playlist_ids', [])
+    playlist_ids = literal_eval(playlist_ids)
+    playlist_ids = playlist_ids["songs"]
+    print(playlist_ids)
     playlist_list = [playlist for playlist in user_playlists['items']]
     # playlist_name = request.GET['playlist-name']
-    number_songs = request.GET['number_songs']
-    selected_playlists = playlist_list[playlist_ids]
-    playlist_tracks_list = [sp.user_playlist_tracks(user_id, playlist_id) for playlist_id in selected_playlists]
-    rand_songs_by_playlist = [random.sample(songs, number_songs) for songs in playlist_tracks_list]
-    return JsonResponse({'status': 200, 'playlists': selected_playlists, 'playlist_songs': rand_songs_by_playlist})
+    number_songs = request.GET.get('number_songs', '')
+    selected_playlists = []
+    for p in playlist_list:
+        if p['id'] in playlist_ids:
+            print(p['id'])
+            selected_playlists.append(p)
+    playlist_tracks_list = [sp.user_playlist_tracks(user_id, playlist_id) for playlist_id in playlist_ids]
+    songs_by_playlist = [[song for song in p_list['items']] for p_list in playlist_tracks_list]
+    rand_songs_by_playlist = [random.sample(songs, int(number_songs)) for songs in songs_by_playlist]
+    print(rand_songs_by_playlist)
+    return JsonResponse({'status': 200, 'playlists': selected_playlists, 'playlist_tracks': rand_songs_by_playlist})
