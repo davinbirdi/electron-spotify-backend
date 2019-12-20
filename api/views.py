@@ -69,6 +69,16 @@ def setup_success(request):
     print("setup successful!")
     return HttpResponseRedirect('/api/add-code')
 
+def get_profile(request):
+    user_id = request.GET['user_id']
+    custom_user = CustomUser.objects.get(id=user_id)
+    token = custom_user.access_token
+    sp = spotipy.Spotify(auth=token)
+    name = sp.current_user()['display_name']
+    pic = sp.current_user()['images'][0]['url']
+    print(pic)
+    return JsonResponse({'status': 200, 'name': name, 'pic': pic})
+
 def get_playlists(request):
     user_id = request.GET['user_id']
     custom_user = CustomUser.objects.get(id=user_id)
@@ -114,3 +124,23 @@ def choose_songs_to_rate(request):
     rand_songs_by_playlist = [random.sample(songs, int(number_songs)) for songs in songs_by_playlist]
     print(rand_songs_by_playlist)
     return JsonResponse({'status': 200, 'playlists': selected_playlists, 'playlist_tracks': rand_songs_by_playlist})
+
+def play(request):
+    user_id = request.GET['user_id']
+    track = request.GET['track_uri']
+    track = 'spotify:track:' + track
+    custom_user = CustomUser.objects.get(id=user_id)
+    token = custom_user.access_token
+    username = custom_user.spotify_id
+    sp = spotipy.Spotify(auth=token)
+
+    sp.start_playback(device_id = CLIENT_ID, context_uri = track)
+    return JsonResponse({'status': 200})
+
+def pause(request):
+    user_id = request.GET['user_id']
+    custom_user = CustomUser.objects.get(id=user_id)
+    token = custom_user.access_token
+    sp = spotipy.Spotify(auth=token)
+    sp.pause_playback(device_id = CLIENT_ID)
+    return JsonResponse({'status': 200})
