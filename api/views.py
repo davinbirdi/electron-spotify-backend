@@ -56,6 +56,7 @@ def add_code(request):
     custom_user = CustomUser.objects.get(id=user_id)
     code = request.POST['code']
     cred = spotipy.util.oauth2.SpotifyOAuth(CLIENT_ID, SECRET_ID, REDIRECT_URI)
+    print("FIRST code : " + str(code))
     full_code = cred.get_access_token(code)
     print("full code : " + str(full_code))
     custom_user.access_token = full_code['access_token']
@@ -128,13 +129,15 @@ def choose_songs_to_rate(request):
 def play(request):
     user_id = request.GET['user_id']
     track = request.GET['track_uri']
-    track = 'spotify:track:' + track
+    device_id = request.GET['device_id']
+    track_list = [track]
+    print("DEVICE " + device_id)
+    # track = 'spotify:track:' + track
     custom_user = CustomUser.objects.get(id=user_id)
     token = custom_user.access_token
     username = custom_user.spotify_id
     sp = spotipy.Spotify(auth=token)
-
-    sp.start_playback(device_id = CLIENT_ID, context_uri = track)
+    # sp.start_playback(device_id, uris = [track])
     return JsonResponse({'status': 200})
 
 def pause(request):
@@ -144,3 +147,10 @@ def pause(request):
     sp = spotipy.Spotify(auth=token)
     sp.pause_playback(device_id = CLIENT_ID)
     return JsonResponse({'status': 200})
+
+def get_token(request):
+    user_id = request.GET['user_id']
+    custom_user = CustomUser.objects.get(id=user_id)
+    token = custom_user.access_token
+    print(token)
+    return JsonResponse({'status': 200, 'token': token})
